@@ -1145,6 +1145,34 @@ Frames Proc.  : ${data.framesProcessed ?? 'N/A'}`;
                 ]
             },
             {
+                id: 'gesture-tests',
+                name: 'Gesture Tests',
+                tests: [
+                    { id: 'namaste-gesture', name: 'Namaste Gesture (🙏)', fn: async () => {
+                        // Ensure avatar is loaded
+                        assert(!!head, 'Avatar must be loaded before running gesture tests');
+                        log('Playing namaste gesture...', 'info');
+
+                        // Start namaste gesture for 3 seconds with a smooth transition
+                        head.playGesture('namaste', 3, false, 800);
+
+                        // Give some time for gesture to be applied
+                        await sleep(300);
+                        if (!head.gesture) {
+                            throw new Error('Namaste gesture did not activate');
+                        }
+
+                        // Wait until the gesture duration should have elapsed
+                        await sleep(3500);
+                        if (head.gesture) {
+                            throw new Error('Namaste gesture did not stop after duration');
+                        }
+
+                        log('Namaste gesture completed successfully.', 'success');
+                    }, timeout: 6000 }
+                ]
+            },
+            {
                 id: 'error-handling',
                 name: 'Error Handling & Edge Cases',
                 tests: [
@@ -1583,11 +1611,18 @@ Frames Proc.  : ${data.framesProcessed ?? 'N/A'}`;
                     
                     log('Initializing TalkingHead...');
                     head = new TalkingHead(avatarContainer, {
-                        ttsEndpoint: "none", cameraView: "upper", lipsyncLang: 'en'
+                        ttsEndpoint: "none",
+                        cameraView: "upper",
+                        lipsyncLang: 'en'
                     });
 
+                    // Load local avatar GLB instead of remote Ready Player Me model
                     await head.showAvatar(
-                        { url: 'https://models.readyplayer.me/64bfa15f0e72c63d7c3934a6.glb?morphTargets=ARKit,Oculus+Visemes,mouthOpen,mouthSmile,eyesClosed,eyesLookUp,eyesLookDown&textureSizeLimit=1024&textureFormat=png', body: 'F', lipsyncLang: 'en' },
+                        {
+                            url: '../avatars/officeboy.glb',
+                            body: 'M',
+                            lipsyncLang: 'en'
+                        },
                         (ev) => {
                             if (ev.lengthComputable) {
                                 const percent = Math.round((ev.loaded / ev.total) * 100);
